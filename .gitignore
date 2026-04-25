@@ -1,0 +1,45 @@
+# Ignore everything by default, then explicitly keep the project essentials.
+*
+
+!.gitignore
+!readme.md
+!main.py
+!visualize.py
+!scale_urdf.py
+
+!src/
+!src/**
+!scripts/
+!scripts/**
+!pic/
+!pic/**
+
+# Python/runtime artifacts
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Local environments and machine-specific files
+.venv/
+venv/
+env/
+.env
+.env.*
+.codex
+
+# Generated outputs
+output.avi
+*.avi
+*.mp4
+*.log
+
+# Large downloadable assets and third-party payloads
+asset/
+assets/
+100466/
+external/
+cache/
+third_part/
