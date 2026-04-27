@@ -1,20 +1,11 @@
-# Ignore everything by default, then explicitly keep the project essentials.
-*
+# Local environments
+.venv/
+venv/
+env/
+.env
+.env.*
 
-!.gitignore
-!readme.md
-!main.py
-!visualize.py
-!scale_urdf.py
-
-!src/
-!src/**
-!scripts/
-!scripts/**
-!pic/
-!pic/**
-
-# Python/runtime artifacts
+# Python/runtime caches
 __pycache__/
 *.py[cod]
 *.pyo
@@ -22,24 +13,16 @@ __pycache__/
 .mypy_cache/
 .ruff_cache/
 
-# Local environments and machine-specific files
-.venv/
-venv/
-env/
-.env
-.env.*
+# Codex/local agent state
 .codex
+.codex/
 
-# Generated outputs
+# Large local assets
+asset/
+assets/
+
+# Generated media/log outputs
 output.avi
 *.avi
 *.mp4
 *.log
-
-# Large downloadable assets and third-party payloads
-asset/
-assets/
-100466/
-external/
-cache/
-third_part/
