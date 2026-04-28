@@ -178,13 +178,29 @@ class SapienVPGEnvironment:
         self.cam_pose = vpg_camera_pose_from_sapien(camera_pose_world)
 
     def _sample_clutter_positions(self, count: int) -> list[tuple[float, float]]:
-        xs = np.linspace(0.30, 0.50, 5)
-        ys = np.linspace(-0.16, 0.18, 5)
-        grid = [(float(x), float(y)) for x in xs for y in ys]
-        self.random.shuffle(grid)
+        block_size = 0.04
+        spacing = block_size + 0.003
+        cols = int(np.ceil(np.sqrt(count)))
+        rows = int(np.ceil(count / cols))
+        center_x = self.random.uniform(0.37, 0.43)
+        center_y = self.random.uniform(-0.04, 0.04)
+
+        offsets = []
+        for row in range(rows):
+            for col in range(cols):
+                x = (col - (cols - 1) / 2.0) * spacing
+                y = (row - (rows - 1) / 2.0) * spacing
+                offsets.append((x, y))
+        self.random.shuffle(offsets)
+
         positions = []
-        for x, y in grid[:count]:
-            positions.append((x + self.random.uniform(-0.01, 0.01), y + self.random.uniform(-0.01, 0.01)))
+        margin = block_size / 2.0
+        for dx, dy in offsets[:count]:
+            x = center_x + dx + self.random.uniform(-0.002, 0.002)
+            y = center_y + dy + self.random.uniform(-0.002, 0.002)
+            x = np.clip(x, self.workspace_limits[0][0] + margin, self.workspace_limits[0][1] - margin)
+            y = np.clip(y, self.workspace_limits[1][0] + margin, self.workspace_limits[1][1] - margin)
+            positions.append((float(x), float(y)))
         return positions
 
     def _move_object_to_discard(self, obj_idx: int) -> None:

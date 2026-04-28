@@ -64,6 +64,18 @@ def get_heightmap(color_img, depth_img, cam_intrinsics, cam_pose, workspace_limi
     depth_heightmap = np.zeros(heightmap_size)
     heightmap_pix_x = np.floor((surface_pts[:,0] - workspace_limits[0][0])/heightmap_resolution).astype(int)
     heightmap_pix_y = np.floor((surface_pts[:,1] - workspace_limits[1][0])/heightmap_resolution).astype(int)
+
+    # Floating point workspace limits can admit points that quantize exactly to
+    # heightmap_size on the upper boundary. Drop them before array indexing.
+    heightmap_pix_valid_ind = np.logical_and(
+        np.logical_and(heightmap_pix_x >= 0, heightmap_pix_x < heightmap_size[1]),
+        np.logical_and(heightmap_pix_y >= 0, heightmap_pix_y < heightmap_size[0]),
+    )
+    heightmap_pix_x = heightmap_pix_x[heightmap_pix_valid_ind]
+    heightmap_pix_y = heightmap_pix_y[heightmap_pix_valid_ind]
+    surface_pts = surface_pts[heightmap_pix_valid_ind]
+    color_pts = color_pts[heightmap_pix_valid_ind]
+
     color_heightmap_r[heightmap_pix_y,heightmap_pix_x] = color_pts[:,[0]]
     color_heightmap_g[heightmap_pix_y,heightmap_pix_x] = color_pts[:,[1]]
     color_heightmap_b[heightmap_pix_y,heightmap_pix_x] = color_pts[:,[2]]
@@ -308,7 +320,6 @@ class CrossEntropyLoss2d(nn.Module):
 
     def forward(self, inputs, targets):
         return self.nll_loss(F.log_softmax(inputs, dim=1), targets)
-
 
 
 

@@ -176,13 +176,29 @@ def spawn_clutter(controller: Controller, num_objects: int) -> None:
 
 
 def sample_clutter_positions(num_objects: int) -> list[tuple[float, float]]:
-    xs = np.linspace(0.32, 0.48, 4)
-    ys = np.linspace(-0.12, 0.18, 4)
-    grid = [(float(x), float(y)) for x in xs for y in ys]
+    block_size = 0.04
+    spacing = block_size + 0.003
+    cols = int(np.ceil(np.sqrt(num_objects)))
+    rows = int(np.ceil(num_objects / cols))
+    center_x = random.uniform(0.37, 0.43)
+    center_y = random.uniform(-0.04, 0.04)
+
+    grid = []
+    for row in range(rows):
+        for col in range(cols):
+            x = (col - (cols - 1) / 2.0) * spacing
+            y = (row - (rows - 1) / 2.0) * spacing
+            grid.append((x, y))
     random.shuffle(grid)
+
     positions = []
-    for x, y in grid[:num_objects]:
-        positions.append((x + random.uniform(-0.01, 0.01), y + random.uniform(-0.01, 0.01)))
+    margin = block_size / 2.0
+    for dx, dy in grid[:num_objects]:
+        x = center_x + dx + random.uniform(-0.002, 0.002)
+        y = center_y + dy + random.uniform(-0.002, 0.002)
+        x = np.clip(x, DEFAULT_WORKSPACE_LIMITS[0][0] + margin, DEFAULT_WORKSPACE_LIMITS[0][1] - margin)
+        y = np.clip(y, DEFAULT_WORKSPACE_LIMITS[1][0] + margin, DEFAULT_WORKSPACE_LIMITS[1][1] - margin)
+        positions.append((float(x), float(y)))
     return positions
 
 

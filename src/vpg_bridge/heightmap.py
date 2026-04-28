@@ -99,6 +99,18 @@ def _local_get_heightmap(
     if surface_pts.shape[0] > 0:
         pix_x = np.floor((surface_pts[:, 0] - workspace_limits[0][0]) / heightmap_resolution).astype(int)
         pix_y = np.floor((surface_pts[:, 1] - workspace_limits[1][0]) / heightmap_resolution).astype(int)
+        pix_valid = np.logical_and.reduce(
+            (
+                pix_x >= 0,
+                pix_x < heightmap_size[1],
+                pix_y >= 0,
+                pix_y < heightmap_size[0],
+            )
+        )
+        pix_x = pix_x[pix_valid]
+        pix_y = pix_y[pix_valid]
+        surface_pts = surface_pts[pix_valid]
+        color_pts = color_pts[pix_valid]
         color_heightmap[pix_y, pix_x, :] = color_pts
         depth_heightmap[pix_y, pix_x] = surface_pts[:, 2]
 
