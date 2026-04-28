@@ -24,6 +24,12 @@ def find_link(robot, link_name: str):
     return matches[0]
 
 
+def _get_link_entity(link):
+    """Return the SAPIEN entity that owns an articulation link component."""
+    entity = getattr(link, "entity", None)
+    return entity if entity is not None else link
+
+
 def create_wrist_rgbd_camera(
     scene,
     robot,
@@ -38,10 +44,11 @@ def create_wrist_rgbd_camera(
 ):
     """Create a mounted RGB-D camera on the gripper hand link."""
     hand_link = find_link(robot, link_name)
+    hand_entity = _get_link_entity(hand_link)
     if hasattr(scene, "add_mounted_camera"):
         camera = scene.add_mounted_camera(
             name="vpg_wrist_rgbd",
-            mount=hand_link,
+            mount=hand_entity,
             pose=pose_in_hand,
             width=width,
             height=height,
@@ -53,8 +60,12 @@ def create_wrist_rgbd_camera(
         import sapien.render
 
         camera = sapien.render.RenderCameraComponent(width, height)
+        if hasattr(camera, "set_fovy"):
+            camera.set_fovy(fovy, compute_x=True)
+        camera.near = near
+        camera.far = far
         camera.local_pose = pose_in_hand
-        hand_link.entity.add_component(camera)
+        hand_entity.add_component(camera)
 
     intrinsics = get_camera_intrinsics(camera, width=width, height=height, fovy=fovy)
     return camera, hand_link, intrinsics
@@ -176,4 +187,3 @@ def _intrinsics_from_camera_or_image(camera, color: np.ndarray) -> np.ndarray:
         [[fy, 0.0, width / 2.0], [0.0, fy, height / 2.0], [0.0, 0.0, 1.0]],
         dtype=np.float32,
     )
-
