@@ -1,0 +1,16 @@
+[project]
+name = "miaa-sim-v2"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "matplotlib>=3.10.9",
+    "mplib==0.2.1",
+    "numpy>=1.26.4",
+    "opencv-python>=4.11.0.86",
+    "sapien==3.0.0b1",
+    "scipy>=1.15.3",
+    "torch>=2.11.0",
+    "torchvision>=0.26.0",
+]
