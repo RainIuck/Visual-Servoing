@@ -265,12 +265,13 @@ def print_execution_result(result) -> None:
     else:
         print(
             "[Servo] status={status} delta_xy={delta} target_pixel={target_pixel} "
-            "pixel_error={pixel_error}".format(
+            "desired_pixel={desired_pixel} pixel_error={pixel_error}".format(
                 status=result.servo.status,
                 delta=np.round(result.servo.delta_xy, 5).tolist(),
                 target_pixel=(
                     None if result.servo.target_pixel is None else np.round(result.servo.target_pixel, 2).tolist()
                 ),
+                desired_pixel=np.round(result.servo.desired_pixel, 2).tolist(),
                 pixel_error=(
                     None if result.servo.pixel_error is None else np.round(result.servo.pixel_error, 2).tolist()
                 ),

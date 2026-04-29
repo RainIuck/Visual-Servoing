@@ -24,7 +24,7 @@ class PrimitiveConfig:
     placed_count: int = 0
     require_grasp_success_for_place: bool = True
     gripper_open_success_threshold: float = 0.005
-    desired_gripper_pixel: tuple[float, float] = (320.0, 240.0)
+    desired_gripper_pixel: Optional[tuple[float, float]] = None
     workspace_limits: np.ndarray = field(default_factory=lambda: DEFAULT_WORKSPACE_LIMITS.copy())
     cam_pose_in_hand: object = field(default_factory=lambda: DEFAULT_CAM_POSE_IN_HAND)
 

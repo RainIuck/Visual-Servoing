@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Sequence
+from typing import Optional, Sequence
 
 import numpy as np
 import sapien.core as sapien
@@ -29,7 +29,7 @@ def estimate_alignment_error(
     cam_pose_in_hand: sapien.Pose,
     intrinsics: np.ndarray,
     depth_img: np.ndarray,
-    desired_gripper_pixel: Sequence[float] = (320.0, 240.0),
+    desired_gripper_pixel: Optional[Sequence[float]] = None,
     max_xy_correction: float = 0.02,
 ) -> ServoResult:
     """Estimate a small execution correction using the wrist RGB-D projection.
@@ -38,7 +38,6 @@ def estimate_alignment_error(
     into the current wrist camera image and compares it with the calibrated
     gripper action pixel.
     """
-    desired_pixel = np.asarray(desired_gripper_pixel, dtype=np.float32)
     target_xyz = np.asarray(target_xyz, dtype=np.float32)
     depth_img = np.asarray(depth_img, dtype=np.float32)
 
@@ -47,6 +46,17 @@ def estimate_alignment_error(
     world_to_cam = np.linalg.inv(cam_pose)
     target_cam_h = world_to_cam @ np.asarray([target_xyz[0], target_xyz[1], target_xyz[2], 1.0], dtype=np.float32)
     target_cam = target_cam_h[:3]
+    if desired_gripper_pixel is None:
+        desired_world = np.asarray(
+            [current_ee_pose.p[0], current_ee_pose.p[1], target_xyz[2], 1.0],
+            dtype=np.float32,
+        )
+        desired_cam = (world_to_cam @ desired_world)[:3]
+        if not np.all(np.isfinite(desired_cam)) or desired_cam[2] <= 1e-6:
+            return _zero_result(np.asarray([0.0, 0.0], dtype=np.float32), "desired_point_behind_camera")
+        desired_pixel = project_camera_point(desired_cam, intrinsics)
+    else:
+        desired_pixel = np.asarray(desired_gripper_pixel, dtype=np.float32)
 
     if not np.all(np.isfinite(target_cam)) or target_cam[2] <= 1e-6:
         return _zero_result(desired_pixel, "target_behind_camera")
@@ -126,4 +136,3 @@ def _zero_result(
         pixel_error=pixel_error,
         status=status,
     )
-
