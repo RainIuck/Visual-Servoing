@@ -14,10 +14,15 @@ if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from src.config.object_varant import (
+    arch_magenta_config,
     block_config,
     block_green_config,
     block_red_config,
     block_yellow_config,
+    cuboid_orange_config,
+    cylinder_cyan_config,
+    l_shape_gray_config,
+    sphere_purple_config,
 )
 from src.config.robot_varant import panda_config
 from src.robot.controller import Controller
@@ -167,12 +172,27 @@ def setup_robot(controller: Controller):
 
 
 def spawn_clutter(controller: Controller, num_objects: int) -> None:
-    configs = [block_red_config, block_green_config, block_yellow_config, block_config]
+    configs = [
+        block_red_config,
+        cuboid_orange_config,
+        sphere_purple_config,
+        block_green_config,
+        cylinder_cyan_config,
+        arch_magenta_config,
+        block_yellow_config,
+        l_shape_gray_config,
+        block_config,
+    ]
     positions = sample_clutter_positions(num_objects)
     for idx, position in enumerate(positions):
         cfg = copy.deepcopy(configs[idx % len(configs)])
         cfg["object_name"] = f"{cfg.get('object_name', 'block')}_{idx:02d}"
-        cfg["position"] = [float(position[0]), float(position[1]), float(position[2])]
+        cfg["position"] = [
+            float(position[0]),
+            float(position[1]),
+            float(position[2] + cfg.get("spawn_z", 0.02)),
+        ]
+        cfg["orientation"] = sample_yaw_quat()
         controller.add_object(cfg)
     print(f"[Scene] Spawned {len(positions)} clutter blocks.")
 
@@ -213,15 +233,20 @@ def sample_clutter_positions(num_objects: int) -> list[tuple[float, float, float
         y = center_y + dy + random.uniform(-0.003, 0.003)
         x = np.clip(x, DEFAULT_WORKSPACE_LIMITS[0][0] + margin, DEFAULT_WORKSPACE_LIMITS[0][1] - margin)
         y = np.clip(y, DEFAULT_WORKSPACE_LIMITS[1][0] + margin, DEFAULT_WORKSPACE_LIMITS[1][1] - margin)
-        positions.append((float(x), float(y), block_size / 2.0))
+        positions.append((float(x), float(y), 0.0))
     for dx, dy in top_offsets[:top_count]:
         x = center_x + dx + random.uniform(-0.004, 0.004)
         y = center_y + dy + random.uniform(-0.004, 0.004)
         x = np.clip(x, DEFAULT_WORKSPACE_LIMITS[0][0] + margin, DEFAULT_WORKSPACE_LIMITS[0][1] - margin)
         y = np.clip(y, DEFAULT_WORKSPACE_LIMITS[1][0] + margin, DEFAULT_WORKSPACE_LIMITS[1][1] - margin)
-        positions.append((float(x), float(y), block_size * 1.5 + 0.002))
+        positions.append((float(x), float(y), block_size + 0.01))
     random.shuffle(positions)
     return positions
+
+
+def sample_yaw_quat() -> list[float]:
+    yaw = random.uniform(-np.pi, np.pi)
+    return [float(np.cos(yaw / 2.0)), 0.0, 0.0, float(np.sin(yaw / 2.0))]
 
 
 def step_scene(controller: Controller, robot, *, steps: int) -> None:

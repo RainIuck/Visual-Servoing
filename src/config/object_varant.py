@@ -51,26 +51,70 @@ block_config = {
     "object_name": "block",
     # 尺寸是 0.04，所以高度 Z 设为 0.02 刚好贴地
     "position": [0.4, 0.0, 0.02], 
-    "orientation": [1, 0, 0, 0]
+    "orientation": [1, 0, 0, 0],
+    "spawn_z": 0.02,
 }
 
 block_red_config = {
     "urdf_path": str(asset_dir / "object/block_red.urdf"),
     "object_name": "block_red",
     "position": [0.4, 0.2, 0.02],  # 左边
-    "orientation": [1, 0, 0, 0]
+    "orientation": [1, 0, 0, 0],
+    "spawn_z": 0.02,
 }
 
 block_green_config = {
     "urdf_path": str(asset_dir / "object/block_green.urdf"),
     "object_name": "block_green",
     "position": [0.4, 0.0, 0.02],  # 中间
-    "orientation": [1, 0, 0, 0]
+    "orientation": [1, 0, 0, 0],
+    "spawn_z": 0.02,
 }
 
 block_yellow_config = {
     "urdf_path": str(asset_dir / "object/block_yellow.urdf"),
     "object_name": "block_yellow",
     "position": [0.4, -0.2, 0.02], # 右边
-    "orientation": [1, 0, 0, 0]
+    "orientation": [1, 0, 0, 0],
+    "spawn_z": 0.02,
+}
+
+cuboid_orange_config = {
+    "urdf_path": str(asset_dir / "object/cuboid_orange.urdf"),
+    "object_name": "cuboid_orange",
+    "position": [0.4, 0.0, 0.016],
+    "orientation": [1, 0, 0, 0],
+    "spawn_z": 0.016,
+}
+
+sphere_purple_config = {
+    "urdf_path": str(asset_dir / "object/sphere_purple.urdf"),
+    "object_name": "sphere_purple",
+    "position": [0.4, 0.0, 0.025],
+    "orientation": [1, 0, 0, 0],
+    "spawn_z": 0.025,
+}
+
+cylinder_cyan_config = {
+    "urdf_path": str(asset_dir / "object/cylinder_cyan.urdf"),
+    "object_name": "cylinder_cyan",
+    "position": [0.4, 0.0, 0.023],
+    "orientation": [1, 0, 0, 0],
+    "spawn_z": 0.023,
+}
+
+arch_magenta_config = {
+    "urdf_path": str(asset_dir / "object/arch_magenta.urdf"),
+    "object_name": "arch_magenta",
+    "position": [0.4, 0.0, 0.025],
+    "orientation": [1, 0, 0, 0],
+    "spawn_z": 0.025,
+}
+
+l_shape_gray_config = {
+    "urdf_path": str(asset_dir / "object/l_shape_gray.urdf"),
+    "object_name": "l_shape_gray",
+    "position": [0.4, 0.0, 0.015],
+    "orientation": [1, 0, 0, 0],
+    "spawn_z": 0.015,
 }

@@ -8,7 +8,17 @@ from typing import Sequence
 import numpy as np
 from mplib import Pose
 
-from src.config.object_varant import block_config, block_green_config, block_red_config, block_yellow_config
+from src.config.object_varant import (
+    arch_magenta_config,
+    block_config,
+    block_green_config,
+    block_red_config,
+    block_yellow_config,
+    cuboid_orange_config,
+    cylinder_cyan_config,
+    l_shape_gray_config,
+    sphere_purple_config,
+)
 from src.config.robot_varant import panda_config
 from src.robot.controller import Controller
 from src.robot.motion_planning import MotionPlanning
@@ -60,7 +70,17 @@ class SapienVPGEnvironment:
             cam_pose_in_hand=DEFAULT_CAM_POSE_IN_HAND,
         )
         self.object_handles = []
-        self.object_configs = [block_red_config, block_green_config, block_yellow_config, block_config]
+        self.object_configs = [
+            block_red_config,
+            cuboid_orange_config,
+            sphere_purple_config,
+            block_green_config,
+            cylinder_cyan_config,
+            arch_magenta_config,
+            block_yellow_config,
+            l_shape_gray_config,
+            block_config,
+        ]
         self.discard_origin = np.asarray([0.75, 0.45, 0.08], dtype=np.float32)
         self.save_video = save_video
         self.add_objects()
@@ -146,11 +166,26 @@ class SapienVPGEnvironment:
             for idx, position in enumerate(positions):
                 cfg = copy.deepcopy(self.object_configs[idx % len(self.object_configs)])
                 cfg["object_name"] = f"{cfg.get('object_name', 'block')}_{idx:02d}"
-                cfg["position"] = [float(position[0]), float(position[1]), float(position[2])]
+                cfg["position"] = [
+                    float(position[0]),
+                    float(position[1]),
+                    float(position[2] + cfg.get("spawn_z", 0.02)),
+                ]
+                cfg["orientation"] = self._sample_yaw_quat()
                 self.object_handles.append(self.controller.add_object(cfg))
         else:
             for idx, obj in enumerate(self.object_handles):
-                self._set_object_pose(obj, [float(positions[idx][0]), float(positions[idx][1]), float(positions[idx][2])])
+                cfg = self.object_configs[idx % len(self.object_configs)]
+                orientation = self._sample_yaw_quat()
+                self._set_object_pose(
+                    obj,
+                    [
+                        float(positions[idx][0]),
+                        float(positions[idx][1]),
+                        float(positions[idx][2] + cfg.get("spawn_z", 0.02)),
+                    ],
+                    orientation,
+                )
         self._step_scene(steps=60)
 
     def check_sim(self) -> None:
@@ -225,13 +260,13 @@ class SapienVPGEnvironment:
             y = center_y + dy + self.random.uniform(-0.003, 0.003)
             x = np.clip(x, self.workspace_limits[0][0] + margin, self.workspace_limits[0][1] - margin)
             y = np.clip(y, self.workspace_limits[1][0] + margin, self.workspace_limits[1][1] - margin)
-            positions.append((float(x), float(y), block_size / 2.0))
+            positions.append((float(x), float(y), 0.0))
         for dx, dy in top_offsets[:top_count]:
             x = center_x + dx + self.random.uniform(-0.004, 0.004)
             y = center_y + dy + self.random.uniform(-0.004, 0.004)
             x = np.clip(x, self.workspace_limits[0][0] + margin, self.workspace_limits[0][1] - margin)
             y = np.clip(y, self.workspace_limits[1][0] + margin, self.workspace_limits[1][1] - margin)
-            positions.append((float(x), float(y), block_size * 1.5 + 0.002))
+            positions.append((float(x), float(y), block_size + 0.01))
         self.random.shuffle(positions)
         return positions
 
@@ -249,10 +284,14 @@ class SapienVPGEnvironment:
             return np.asarray(obj.get_entity_pose().p, dtype=np.float32)
         raise AttributeError("Unsupported SAPIEN object pose API")
 
-    def _set_object_pose(self, obj, position: Sequence[float]) -> None:
+    def _sample_yaw_quat(self) -> list[float]:
+        yaw = self.random.uniform(-np.pi, np.pi)
+        return [float(np.cos(yaw / 2.0)), 0.0, 0.0, float(np.sin(yaw / 2.0))]
+
+    def _set_object_pose(self, obj, position: Sequence[float], orientation: Sequence[float] | None = None) -> None:
         import sapien.core as sapien
 
-        pose = sapien.Pose(position, [1, 0, 0, 0])
+        pose = sapien.Pose(position, [1, 0, 0, 0] if orientation is None else orientation)
         if hasattr(obj, "set_pose"):
             obj.set_pose(pose)
         elif hasattr(obj, "set_root_pose"):
