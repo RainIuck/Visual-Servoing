@@ -87,7 +87,14 @@ class MotionPlanning:
         # 'acceleration', 'duration'
         # plan_pose ankor
         print("plan_pose")
-        result = self.planner.plan_pose(pose, self.controller.robot.get_qpos(), time_step=1 / 250)
+        try:
+            result = self.planner.plan_pose(pose, self.controller.robot.get_qpos(), time_step=1 / 250)
+        except RuntimeError as exc:
+            print(f"RRTConnect planning failed with runtime error: {exc}")
+            return -1
+        except Exception as exc:
+            print(f"RRTConnect planning failed: {exc}")
+            return -1
         # plan_pose ankor end
         if result["status"] != "Success":
             print(result["status"])
@@ -101,11 +108,18 @@ class MotionPlanning:
         Interpolative planning with screw motion.
         Will not avoid collision and will fail if the path contains collision.
         """
-        result = self.planner.plan_screw(
-            pose,
-            self.controller.robot.get_qpos(),
-            time_step=1 / 250,
-        )
+        try:
+            result = self.planner.plan_screw(
+                pose,
+                self.controller.robot.get_qpos(),
+                time_step=1 / 250,
+            )
+        except RuntimeError as exc:
+            print(f"Screw planning failed with runtime error: {exc}. Falling back to RRTConnect.")
+            return self.move_to_pose_with_RRTConnect(pose)
+        except Exception as exc:
+            print(f"Screw planning failed: {exc}. Falling back to RRTConnect.")
+            return self.move_to_pose_with_RRTConnect(pose)
         if result["status"] == "Success":
             self.follow_path(result)
             return 0

@@ -70,7 +70,14 @@ class SapienVPGEnvironment:
             self.controller.out.release()
 
     def move_to_observation(self) -> None:
-        self.mp.move_to_pose(OBSERVATION_POSE)
+        result = self.mp.move_to_pose(OBSERVATION_POSE)
+        if result != 0:
+            print("Failed to reach observation pose with screw planning. Retrying with RRTConnect.")
+            result = self.mp.move_to_pose(OBSERVATION_POSE, with_screw=False)
+        if result != 0:
+            print("Failed to reach observation pose. Resetting robot to safe home and retrying.")
+            self._reset_robot_to_safe_home()
+            self.mp.move_to_pose(OBSERVATION_POSE, with_screw=False)
         self._update_camera_pose()
 
     def get_camera_data(self):
@@ -129,7 +136,7 @@ class SapienVPGEnvironment:
         return True
 
     def restart_sim(self) -> None:
-        self.mp.move_to_pose(OBSERVATION_POSE)
+        self.move_to_observation()
         self.add_objects()
         self._step_scene(steps=80)
 
@@ -165,13 +172,18 @@ class SapienVPGEnvironment:
         robot_config = copy.deepcopy(panda_config)
         robot_config["position"] = [0.0, 0.0, 0.0]
         robot = self.controller.add_robot(robot_config)
+        self._reset_robot_to_safe_home(robot)
+        return robot
+
+    def _reset_robot_to_safe_home(self, robot=None) -> None:
+        if robot is None:
+            robot = self.robot
         safe_home_qpos = [0.0, -0.785, 0.0, -2.356, 0.0, 1.571, 0.785, 0.04, 0.04]
         robot.set_qpos(safe_home_qpos)
         for i, joint in enumerate(robot.active_joints):
             if i < len(safe_home_qpos):
                 joint.set_drive_target(safe_home_qpos[i])
         self._step_robot(robot, steps=50)
-        return robot
 
     def _update_camera_pose(self) -> None:
         camera_pose_world = get_camera_pose_world(self.hand_link.get_entity_pose(), DEFAULT_CAM_POSE_IN_HAND)
