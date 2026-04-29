@@ -92,6 +92,7 @@ def main() -> None:
     primitive_config = PrimitiveConfig(
         workspace_limits=DEFAULT_WORKSPACE_LIMITS.copy(),
         cam_pose_in_hand=DEFAULT_CAM_POSE_IN_HAND,
+        place_after_grasp=True,
     )
     def capture_current_frame():
         return capture_rgbd(camera, scene=controller.scene, intrinsics=intrinsics)
@@ -144,6 +145,7 @@ def main() -> None:
                 capture_rgbd=capture_current_frame,
             )
             print_execution_result(result)
+            mp.move_to_pose(OBSERVATION_POSE)
     finally:
         controller.out.release()
 
@@ -250,11 +252,12 @@ def print_execution_result(result) -> None:
             )
         )
     print(
-        "[Exec] action={action} target={target} refined={refined} theta={theta:.3f}".format(
+        "[Exec] action={action} target={target} refined={refined} theta={theta:.3f} grasp_success={grasp_success}".format(
             action=result.action,
             target=np.round(result.target_xyz, 4).tolist(),
             refined=np.round(result.refined_xyz, 4).tolist(),
             theta=result.theta,
+            grasp_success=result.grasp_success,
         )
     )
 

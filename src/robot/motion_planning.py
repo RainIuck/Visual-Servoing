@@ -69,7 +69,7 @@ class MotionPlanning:
             if i % 4 == 0:
                 self.controller.scene.update_render()
                 self.controller.viewer.render()
-                            
+
     def open_gripper(self):
         self.set_gripper(0.4)
 
