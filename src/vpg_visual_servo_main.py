@@ -170,35 +170,55 @@ def spawn_clutter(controller: Controller, num_objects: int) -> None:
     for idx, position in enumerate(positions):
         cfg = copy.deepcopy(configs[idx % len(configs)])
         cfg["object_name"] = f"{cfg.get('object_name', 'block')}_{idx:02d}"
-        cfg["position"] = [float(position[0]), float(position[1]), 0.02]
+        cfg["position"] = [float(position[0]), float(position[1]), float(position[2])]
         controller.add_object(cfg)
     print(f"[Scene] Spawned {len(positions)} clutter blocks.")
 
 
-def sample_clutter_positions(num_objects: int) -> list[tuple[float, float]]:
+def sample_clutter_positions(num_objects: int) -> list[tuple[float, float, float]]:
     block_size = 0.04
-    spacing = block_size + 0.003
-    cols = int(np.ceil(np.sqrt(num_objects)))
-    rows = int(np.ceil(num_objects / cols))
+    spacing = block_size + 0.002
+    top_count = 0 if num_objects < 6 else min(num_objects // 3 + 1, num_objects - 4)
+    base_count = num_objects - top_count
     center_x = random.uniform(0.37, 0.43)
     center_y = random.uniform(-0.04, 0.04)
 
-    grid = []
-    for row in range(rows):
-        for col in range(cols):
-            x = (col - (cols - 1) / 2.0) * spacing
-            y = (row - (rows - 1) / 2.0) * spacing
-            grid.append((x, y))
-    random.shuffle(grid)
+    base_offsets = [
+        (0.0, 0.0),
+        (-spacing, 0.0),
+        (spacing, 0.0),
+        (0.0, -spacing),
+        (0.0, spacing),
+        (-spacing, -spacing),
+        (spacing, spacing),
+        (-spacing, spacing),
+        (spacing, -spacing),
+    ]
+    top_offsets = [
+        (-spacing / 2.0, -spacing / 2.0),
+        (spacing / 2.0, -spacing / 2.0),
+        (-spacing / 2.0, spacing / 2.0),
+        (spacing / 2.0, spacing / 2.0),
+        (0.0, 0.0),
+    ]
+    random.shuffle(base_offsets)
+    random.shuffle(top_offsets)
 
     positions = []
     margin = block_size / 2.0
-    for dx, dy in grid[:num_objects]:
-        x = center_x + dx + random.uniform(-0.002, 0.002)
-        y = center_y + dy + random.uniform(-0.002, 0.002)
+    for dx, dy in base_offsets[:base_count]:
+        x = center_x + dx + random.uniform(-0.003, 0.003)
+        y = center_y + dy + random.uniform(-0.003, 0.003)
         x = np.clip(x, DEFAULT_WORKSPACE_LIMITS[0][0] + margin, DEFAULT_WORKSPACE_LIMITS[0][1] - margin)
         y = np.clip(y, DEFAULT_WORKSPACE_LIMITS[1][0] + margin, DEFAULT_WORKSPACE_LIMITS[1][1] - margin)
-        positions.append((float(x), float(y)))
+        positions.append((float(x), float(y), block_size / 2.0))
+    for dx, dy in top_offsets[:top_count]:
+        x = center_x + dx + random.uniform(-0.004, 0.004)
+        y = center_y + dy + random.uniform(-0.004, 0.004)
+        x = np.clip(x, DEFAULT_WORKSPACE_LIMITS[0][0] + margin, DEFAULT_WORKSPACE_LIMITS[0][1] - margin)
+        y = np.clip(y, DEFAULT_WORKSPACE_LIMITS[1][0] + margin, DEFAULT_WORKSPACE_LIMITS[1][1] - margin)
+        positions.append((float(x), float(y), block_size * 1.5 + 0.002))
+    random.shuffle(positions)
     return positions
 
 

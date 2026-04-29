@@ -146,11 +146,11 @@ class SapienVPGEnvironment:
             for idx, position in enumerate(positions):
                 cfg = copy.deepcopy(self.object_configs[idx % len(self.object_configs)])
                 cfg["object_name"] = f"{cfg.get('object_name', 'block')}_{idx:02d}"
-                cfg["position"] = [float(position[0]), float(position[1]), 0.02]
+                cfg["position"] = [float(position[0]), float(position[1]), float(position[2])]
                 self.object_handles.append(self.controller.add_object(cfg))
         else:
             for idx, obj in enumerate(self.object_handles):
-                self._set_object_pose(obj, [float(positions[idx][0]), float(positions[idx][1]), 0.02])
+                self._set_object_pose(obj, [float(positions[idx][0]), float(positions[idx][1]), float(positions[idx][2])])
         self._step_scene(steps=60)
 
     def check_sim(self) -> None:
@@ -189,30 +189,50 @@ class SapienVPGEnvironment:
         camera_pose_world = get_camera_pose_world(self.hand_link.get_entity_pose(), DEFAULT_CAM_POSE_IN_HAND)
         self.cam_pose = vpg_camera_pose_from_sapien(camera_pose_world)
 
-    def _sample_clutter_positions(self, count: int) -> list[tuple[float, float]]:
+    def _sample_clutter_positions(self, count: int) -> list[tuple[float, float, float]]:
         block_size = 0.04
-        spacing = block_size + 0.003
-        cols = int(np.ceil(np.sqrt(count)))
-        rows = int(np.ceil(count / cols))
+        spacing = block_size + 0.002
+        top_count = 0 if count < 6 else min(count // 3 + 1, count - 4)
+        base_count = count - top_count
         center_x = self.random.uniform(0.37, 0.43)
         center_y = self.random.uniform(-0.04, 0.04)
 
-        offsets = []
-        for row in range(rows):
-            for col in range(cols):
-                x = (col - (cols - 1) / 2.0) * spacing
-                y = (row - (rows - 1) / 2.0) * spacing
-                offsets.append((x, y))
-        self.random.shuffle(offsets)
+        base_offsets = [
+            (0.0, 0.0),
+            (-spacing, 0.0),
+            (spacing, 0.0),
+            (0.0, -spacing),
+            (0.0, spacing),
+            (-spacing, -spacing),
+            (spacing, spacing),
+            (-spacing, spacing),
+            (spacing, -spacing),
+        ]
+        top_offsets = [
+            (-spacing / 2.0, -spacing / 2.0),
+            (spacing / 2.0, -spacing / 2.0),
+            (-spacing / 2.0, spacing / 2.0),
+            (spacing / 2.0, spacing / 2.0),
+            (0.0, 0.0),
+        ]
+        self.random.shuffle(base_offsets)
+        self.random.shuffle(top_offsets)
 
         positions = []
         margin = block_size / 2.0
-        for dx, dy in offsets[:count]:
-            x = center_x + dx + self.random.uniform(-0.002, 0.002)
-            y = center_y + dy + self.random.uniform(-0.002, 0.002)
+        for dx, dy in base_offsets[:base_count]:
+            x = center_x + dx + self.random.uniform(-0.003, 0.003)
+            y = center_y + dy + self.random.uniform(-0.003, 0.003)
             x = np.clip(x, self.workspace_limits[0][0] + margin, self.workspace_limits[0][1] - margin)
             y = np.clip(y, self.workspace_limits[1][0] + margin, self.workspace_limits[1][1] - margin)
-            positions.append((float(x), float(y)))
+            positions.append((float(x), float(y), block_size / 2.0))
+        for dx, dy in top_offsets[:top_count]:
+            x = center_x + dx + self.random.uniform(-0.004, 0.004)
+            y = center_y + dy + self.random.uniform(-0.004, 0.004)
+            x = np.clip(x, self.workspace_limits[0][0] + margin, self.workspace_limits[0][1] - margin)
+            y = np.clip(y, self.workspace_limits[1][0] + margin, self.workspace_limits[1][1] - margin)
+            positions.append((float(x), float(y), block_size * 1.5 + 0.002))
+        self.random.shuffle(positions)
         return positions
 
     def _move_object_to_discard(self, obj_idx: int) -> None:
