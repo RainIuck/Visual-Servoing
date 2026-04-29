@@ -17,9 +17,13 @@ class Controller:
         near, far = 0.1, 100
         width, height = 640, 480
 
-        # Compute the camera pose by specifying forward(x), left(y) and up(z)
-        cam_pos = np.array([-2, -2, 3])
-        forward = -cam_pos / np.linalg.norm(cam_pos)
+        # Compute the recording camera pose by specifying forward(x), left(y) and up(z).
+        # The view is a high oblique angle that covers the robot, VPG workspace,
+        # and reachable discard row without looking through the arm.
+        cam_pos = np.array([0.85, -1.65, 1.65], dtype=np.float32)
+        cam_target = np.array([0.36, -0.08, 0.18], dtype=np.float32)
+        forward = cam_target - cam_pos
+        forward = forward / np.linalg.norm(forward)
         left = np.cross([0, 0, 1], forward)
         left = left / np.linalg.norm(left)
         up = np.cross(forward, left)
@@ -31,7 +35,7 @@ class Controller:
             name="camera",
             width=width,
             height=height,
-            fovy=np.deg2rad(35),
+            fovy=np.deg2rad(55),
             near=near,
             far=far,
         )
