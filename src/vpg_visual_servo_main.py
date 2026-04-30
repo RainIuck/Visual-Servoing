@@ -59,6 +59,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--use-servo", dest="use_servo", action="store_true", default=True)
     parser.add_argument("--no-servo", dest="use_servo", action="store_false")
     parser.add_argument("--keep-viewer", action="store_true", help="Keep the SAPIEN viewer open after the loop.")
+    parser.add_argument("--save-video", action="store_true", help="Save the global recording camera to output.avi.")
     return parser.parse_args()
 
 
@@ -83,7 +84,7 @@ def main() -> None:
         force_cpu=args.cpu,
     )
 
-    controller = Controller()
+    controller = Controller(save_video=args.save_video)
     robot = setup_robot(controller)
     camera, hand_link, intrinsics = create_wrist_rgbd_camera(
         controller.scene,
@@ -152,7 +153,8 @@ def main() -> None:
             print_execution_result(result)
             mp.move_to_pose(OBSERVATION_POSE)
     finally:
-        controller.out.release()
+        if controller.out is not None:
+            controller.out.release()
 
     if args.keep_viewer:
         controller.visualize(robot)

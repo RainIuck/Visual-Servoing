@@ -54,7 +54,7 @@ class SapienVPGEnvironment:
         self.workspace_limits = np.asarray(workspace_limits, dtype=np.float32)
         self.heightmap_resolution = float(heightmap_resolution)
         self.random = random.Random(random_seed)
-        self.controller = Controller()
+        self.controller = Controller(save_video=save_video)
         self.robot = self._setup_robot()
         self.camera, self.hand_link, self.cam_intrinsics = create_wrist_rgbd_camera(
             self.controller.scene,

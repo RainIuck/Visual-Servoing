@@ -3,7 +3,8 @@ import cv2
 import time
 import numpy as np
 class Controller:
-    def __init__(self):
+    def __init__(self, *, save_video: bool = False, video_path: str = "output.avi"):
+        self.save_video = save_video
         self.scene = sapien.Scene()
         self.scene.add_ground(0)
 
@@ -41,9 +42,10 @@ class Controller:
         )
         self.camera.entity.set_pose(sapien.Pose(mat44))
         
-        # 初始化视频编码器
-        fourcc = cv2.VideoWriter_fourcc(*'XVID')
-        self.out = cv2.VideoWriter("output.avi", fourcc, 30.0, (640, 480))
+        self.out = None
+        if self.save_video:
+            fourcc = cv2.VideoWriter_fourcc(*'XVID')
+            self.out = cv2.VideoWriter(video_path, fourcc, 30.0, (width, height))
         
     def add_entity(self, config, fix_root_link):
         loader = self.scene.create_urdf_loader()

@@ -15,6 +15,7 @@ os.environ["QT_QPA_PLATFORM"] = "xcb"
 os.environ["QT_LOGGING_RULES"] = "default.warning=false"
 
 import time
+import argparse
 import cv2
 import numpy as np
 import sapien.core as sapien
@@ -116,7 +117,11 @@ def visual_servoing(camera, scene, robot, cam_pose, mp):
     cv2.destroyWindow("IBVS Continuous View")
 
 if __name__ == "__main__":
-    controller = Controller()
+    parser = argparse.ArgumentParser(description="Run the Panda visual-servo pick-and-place demo.")
+    parser.add_argument("--save-video", action="store_true", help="Save the global recording camera to output.avi.")
+    args = parser.parse_args()
+
+    controller = Controller(save_video=args.save_video)
     
     # 1. 机械臂底座归零
     ROBOT_BASE_Z = 0.0
@@ -261,5 +266,6 @@ if __name__ == "__main__":
         
     mp.move_to_pose(Pose([DROP_X, DROP_Y, SAFE_HEIGHT_Z], BLOCK_Q))
     
-    controller.out.release()
+    if controller.out is not None:
+        controller.out.release()
     controller.visualize(robot)

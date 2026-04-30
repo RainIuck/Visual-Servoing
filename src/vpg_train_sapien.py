@@ -45,6 +45,7 @@ def main(args: argparse.Namespace) -> None:
         workspace_limits=workspace_limits,
         heightmap_resolution=heightmap_resolution,
         random_seed=args.random_seed,
+        save_video=args.save_video,
     )
     env.move_to_observation()
     trainer = Trainer(
@@ -440,6 +441,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--continue_logging", "--continue-logging", dest="continue_logging", action="store_true", default=False)
     parser.add_argument("--logging_directory", "--logging-directory", dest="logging_directory", default="logs")
     parser.add_argument("--save_visualizations", "--save-visualizations", dest="save_visualizations", action="store_true", default=False)
+    parser.add_argument("--save_video", "--save-video", dest="save_video", action="store_true", default=False)
     return parser.parse_args()
 
 
