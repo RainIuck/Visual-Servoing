@@ -10,8 +10,8 @@
 
 ## Key Changes
 
-- 保留现有 `src/main.py` 单红块 RGB/HSV demo，不覆盖。
-- 新增融合主入口 `src/vpg_visual_servo_main.py`。
+- 单红块 RGB/HSV 普通视觉伺服 demo 已移除。
+- 融合主入口为 `src/vpg_visual_servo_main.py`。
 - 新增 `src/vpg_bridge/`：
   - `camera.py`：创建/读取腕部 RGB-D 相机，提供 RGB、depth、内参。
   - `heightmap.py`：将 RGB-D 转为 VPG 所需 heightmap。
