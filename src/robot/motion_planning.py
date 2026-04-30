@@ -43,12 +43,13 @@ class MotionPlanning:
             if i % 4 == 0:
                 self.controller.scene.update_render()
                 self.controller.viewer.render()
-                self.controller.camera.take_picture()
-                rgb = self.controller.camera.get_picture("Color") 
-                rgb = (rgb * 255).clip(0, 255).astype("uint8")
-                # rgb = self.controller.camera.get_rgb()
-                bgr = cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR)
-                self.controller.out.write(bgr)
+                if self.controller.out is not None:
+                    self.controller.camera.take_picture()
+                    rgb = self.controller.camera.get_picture("Color") 
+                    rgb = (rgb * 255).clip(0, 255).astype("uint8")
+                    # rgb = self.controller.camera.get_rgb()
+                    bgr = cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR)
+                    self.controller.out.write(bgr)
     # follow path ankor end
     def set_gripper(self, pos):
         """
