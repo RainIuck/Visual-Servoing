@@ -17,7 +17,6 @@ from src.config.object_varant import (
     cuboid_orange_config,
     cylinder_cyan_config,
     l_shape_gray_config,
-    sphere_purple_config,
 )
 from src.config.robot_varant import panda_config
 from src.robot.controller import Controller
@@ -73,7 +72,6 @@ class SapienVPGEnvironment:
         self.object_configs = [
             block_red_config,
             cuboid_orange_config,
-            sphere_purple_config,
             block_green_config,
             cylinder_cyan_config,
             arch_magenta_config,
