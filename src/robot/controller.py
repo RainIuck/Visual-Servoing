@@ -2,6 +2,9 @@ import sapien
 import cv2
 import time
 import numpy as np
+
+from src.vpg_bridge.storage_bin import DEFAULT_STORAGE_BIN, add_storage_bin_to_scene
+
 class Controller:
     def __init__(self, *, save_video: bool = False, video_path: str = "output.avi"):
         self.save_video = save_video
@@ -20,7 +23,7 @@ class Controller:
 
         # Compute the recording camera pose by specifying forward(x), left(y) and up(z).
         # The view is a high oblique angle that covers the robot, VPG workspace,
-        # and reachable discard row without looking through the arm.
+        # and reachable storage bin without looking through the arm.
         cam_pos = np.array([0.85, -1.65, 1.65], dtype=np.float32)
         cam_target = np.array([0.36, -0.08, 0.18], dtype=np.float32)
         forward = cam_target - cam_pos
@@ -76,6 +79,9 @@ class Controller:
 
     def add_object(self, object_config):
         return self.add_entity(object_config, fix_root_link=False)
+
+    def add_storage_bin(self, config=DEFAULT_STORAGE_BIN):
+        return add_storage_bin_to_scene(self.scene, config)
        
     def set_robot_pose(self,object,arm):
         # arm_init_qpos = [4.71, 2.84, 0, 0.75, 4.62, 4.48, 4.88]
