@@ -9,6 +9,8 @@
 
 根目录 `main.py` 是推理流程的兼容入口，等价于运行 `src.vpg_visual_servo_main`。
 
+本项目GitHub仓库：https://github.com/RainIuck/Visual-Servoing
+
 ## 项目结构
 
 ```text
