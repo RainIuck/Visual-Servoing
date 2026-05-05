@@ -42,13 +42,19 @@
 
 ### 环境依赖
 
-推荐使用项目虚拟环境：
+推荐运行环境：
+
+- 操作系统：Ubuntu 22.04
+- GPU：建议显存大于 8GB
+- Python 环境管理：uv
+
+在项目根目录执行：
 
 ```bash
-.venv/bin/python -m pip install -e .
+uv sync
 ```
 
-核心依赖见 `pyproject.toml`，主要包括：
+`uv sync` 会根据 `pyproject.toml` 和 `uv.lock` 创建/同步项目虚拟环境。核心依赖主要包括：
 
 ```text
 sapien==3.0.0b1
@@ -59,12 +65,6 @@ scipy
 torch
 torchvision
 matplotlib
-```
-
-如果只手动安装核心仿真依赖：
-
-```bash
-.venv/bin/python -m pip install sapien==3.0.0b1 mplib==0.2.1
 ```
 
 ### 仿真资产
@@ -83,21 +83,6 @@ matplotlib
 ```
 
 默认会把远端数据集中的 `asset/` 同步到本地 `./asset/`。如果本地已有 `asset/`，脚本会整目录替换，请先自行备份。
-
-### VPG 预训练权重
-
-推理入口默认加载：
-
-```text
-visual-pushing-grasping-master/downloads/vpg-original-sim-pretrained-10-obj.pth
-```
-
-如果该文件不存在，先下载原始 VPG 预训练权重：
-
-```bash
-cd visual-pushing-grasping-master/downloads
-./download-weights.sh
-```
 
 ## 推理使用方法
 
@@ -157,22 +142,6 @@ cd visual-pushing-grasping-master/downloads
 ```
 
 ## 训练使用方法
-
-### 从零训练前的权重准备
-
-从零训练时，原 VPG 会使用 DenseNet121 ImageNet 预训练 backbone。联网环境下 torchvision 通常会自动下载；离线环境下需要提前把权重放到：
-
-```text
-~/.cache/torch/hub/checkpoints/
-```
-
-常见文件名类似：
-
-```text
-densenet121-a639ec97.pth
-```
-
-本项目不会自动回退到全随机 backbone，因为训练目标是保持与原 VPG 的训练方式一致。
 
 检查 GPU：
 

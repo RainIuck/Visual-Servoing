@@ -40,7 +40,6 @@ from src.vpg_bridge.heightmap import (
 )
 from src.vpg_bridge.policy import VPGPolicy
 from src.vpg_bridge.primitives import PrimitiveConfig, execute_vpg_action
-from src.vpg_bridge.storage_bin import DEFAULT_STORAGE_BIN
 
 
 PROJECT_DIR = Path(__file__).resolve().parents[1]
@@ -92,7 +91,6 @@ def main() -> None:
         pose_in_hand=DEFAULT_CAM_POSE_IN_HAND,
     )
     spawn_clutter(controller, args.num_objects)
-    controller.add_storage_bin(DEFAULT_STORAGE_BIN)
     step_scene(controller, robot, steps=80)
 
     mp = MotionPlanning(panda_config, controller)

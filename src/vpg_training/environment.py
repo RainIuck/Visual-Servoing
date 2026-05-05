@@ -30,7 +30,6 @@ from src.vpg_bridge.camera import (
 )
 from src.vpg_bridge.heightmap import DEFAULT_HEIGHTMAP_RESOLUTION, DEFAULT_WORKSPACE_LIMITS, build_heightmap
 from src.vpg_bridge.primitives import PrimitiveConfig, execute_grasp, execute_push
-from src.vpg_bridge.storage_bin import DEFAULT_STORAGE_BIN, storage_bin_object_pose
 
 
 PROJECT_DIR = Path(__file__).resolve().parents[2]
@@ -80,8 +79,7 @@ class SapienVPGEnvironment:
             l_shape_gray_config,
             block_config,
         ]
-        self.storage_bin = DEFAULT_STORAGE_BIN
-        self.controller.add_storage_bin(self.storage_bin)
+        self.discard_origin = np.asarray([0.75, 0.45, 0.08], dtype=np.float32)
         self.save_video = save_video
         self.add_objects()
 
@@ -138,7 +136,7 @@ class SapienVPGEnvironment:
         grasp_success = bool(np.any(lifted))
         if grasp_success:
             grasped_idx = int(np.argmax(after_positions[:, 2]))
-            self._move_object_to_storage_bin(grasped_idx)
+            self._move_object_to_discard(grasped_idx)
         return grasp_success
 
     def push(self, position: Sequence[float], heightmap_rotation_angle: float, workspace_limits) -> bool:
@@ -270,9 +268,9 @@ class SapienVPGEnvironment:
         self.random.shuffle(positions)
         return positions
 
-    def _move_object_to_storage_bin(self, obj_idx: int) -> None:
-        pose = storage_bin_object_pose(obj_idx, self.storage_bin)
-        self._set_object_pose(self.object_handles[obj_idx], pose)
+    def _move_object_to_discard(self, obj_idx: int) -> None:
+        discard = self.discard_origin + np.asarray([0.0, 0.05 * obj_idx, 0.0], dtype=np.float32)
+        self._set_object_pose(self.object_handles[obj_idx], discard.tolist())
         self._step_scene(steps=20)
 
     def _get_object_position(self, obj) -> np.ndarray:
