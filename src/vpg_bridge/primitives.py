@@ -9,6 +9,7 @@ from mplib import Pose
 from .camera import DEFAULT_CAM_POSE_IN_HAND, RGBDFrame
 from .heightmap import DEFAULT_WORKSPACE_LIMITS
 from .servo import ServoResult, estimate_alignment_error
+from .storage_bin import DEFAULT_STORAGE_BIN, StorageBinConfig, storage_bin_drop_pose
 
 
 @dataclass
@@ -22,8 +23,10 @@ class PrimitiveConfig:
     discard_origin: tuple[float, float, float] = (0.30, -0.34, 0.13)
     discard_spacing: float = 0.05
     placed_count: int = 0
+    place_into_storage_bin: bool = False
+    storage_bin: StorageBinConfig = DEFAULT_STORAGE_BIN
     require_grasp_success_for_place: bool = True
-    gripper_open_success_threshold: float = 0.005
+    gripper_open_success_threshold: float = 0.003
     desired_gripper_pixel: Optional[tuple[float, float]] = None
     workspace_limits: np.ndarray = field(default_factory=lambda: DEFAULT_WORKSPACE_LIMITS.copy())
     cam_pose_in_hand: object = field(default_factory=lambda: DEFAULT_CAM_POSE_IN_HAND)
@@ -133,12 +136,13 @@ def execute_grasp(
     mp.move_to_pose(Pose([float(refined_xyz[0]), float(refined_xyz[1]), config.safe_z], q))
     grasp_success = estimate_gripper_blocked(mp, config.gripper_open_success_threshold)
     if config.place_after_grasp and (grasp_success or not config.require_grasp_success_for_place):
-        drop_x, drop_y, drop_z = discard_pose(config)
+        drop_x, drop_y, drop_z = place_pose(config)
         mp.move_to_pose(Pose([float(drop_x), float(drop_y), config.safe_z], q))
         mp.move_to_pose(Pose([float(drop_x), float(drop_y), float(drop_z)], q))
         mp.open_gripper()
         mp.move_to_pose(Pose([float(drop_x), float(drop_y), config.safe_z], q))
-        config.placed_count += 1
+        if not config.place_into_storage_bin:
+            config.placed_count += 1
     return ExecutionResult("grasp", np.asarray(target_xyz, dtype=np.float32), refined_xyz, theta, servo, grasp_success)
 
 
@@ -181,19 +185,28 @@ def downward_gripper_quat(theta: float) -> list[float]:
     return normalize_quat(quat_multiply(qz, base_down)).tolist()
 
 
+def place_pose(config: PrimitiveConfig) -> tuple[float, float, float]:
+    if config.place_into_storage_bin:
+        return storage_bin_drop_pose(config.storage_bin)
+    return discard_pose(config)
+
+
 def discard_pose(config: PrimitiveConfig) -> tuple[float, float, float]:
     x, y, z = config.discard_origin
     return float(x + config.discard_spacing * config.placed_count), float(y), float(z)
 
 
-def estimate_gripper_blocked(mp, threshold: float = 0.005) -> bool:
+def estimate_gripper_blocked(mp, threshold: float = 0.003) -> bool:
     robot = getattr(mp.controller, "robot", None)
     if robot is None or not hasattr(robot, "get_qpos"):
         return True
     qpos = np.asarray(robot.get_qpos(), dtype=np.float32).reshape(-1)
     if qpos.size < 2:
         return True
-    return bool(np.mean(np.abs(qpos[-2:])) > threshold)
+    finger_qpos = np.abs(qpos[-2:])
+    mean_opening = float(np.mean(finger_qpos))
+    max_opening = float(np.max(finger_qpos))
+    return bool(max_opening > threshold or mean_opening > threshold * 0.5)
 
 
 def quat_multiply(q1: Sequence[float], q2: Sequence[float]) -> np.ndarray:
