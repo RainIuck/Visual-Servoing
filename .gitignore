@@ -24,7 +24,6 @@ assets/
 # Generated media/log outputs
 output.avi
 *.avi
-*.mp4
 *.log
 logs
 visualization.grasp.png
